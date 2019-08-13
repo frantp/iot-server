@@ -10,7 +10,7 @@ services:
     ports:
       - "1883:1883"
   telegraf:
-    image: telegraf
+    image: telegraf:alpine
     depends_on:
       - influxdb
       - kapacitor
@@ -22,7 +22,7 @@ services:
     volumes:
       - ./etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro
   influxdb:
-    image: influxdb
+    image: influxdb:alpine
     restart: unless-stopped
     networks:
       - internal
@@ -32,7 +32,7 @@ services:
     #ports:
     #  - "8086:8086"
   kapacitor:
-    image: kapacitor
+    image: kapacitor:alpine
     environment:
       KAPACITOR_INFLUXDB_0_URLS_0: http://influxdb:8086
     depends_on:
@@ -45,7 +45,7 @@ services:
     #ports:
     #  - "9092:9092"
   chronograf:
-    image: chronograf
+    image: chronograf:alpine
     environment:
       INFLUXDB_URL: http://influxdb:8086
       KAPACITOR_URL: http://kapacitor:9092
