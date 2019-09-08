@@ -59,6 +59,18 @@ services:
       - chronograf:/var/lib/chronograf
     ports:
       - "8888:8888"
+  grafana:
+    build: grafana
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+    networks:
+      - internal
+    volumes:
+      - ./etc/grafana.ini:/etc/grafana/grafana.ini:ro
+      - grafana:/var/lib/grafana
+    ports:
+      - "3000:3000"
 
 networks:
   internal:
@@ -66,3 +78,4 @@ networks:
 volumes:
   influxdb:
   chronograf:
+  grafana:
