@@ -1,16 +1,18 @@
 version: '3'
 services:
   mosquitto:
-    image: eclipse-mosquitto
+    container_name: iotserver_mosquitto
+    build: mosquitto
     restart: unless-stopped
     networks:
       - internal
     volumes:
-      - ./etc/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-      - ./etc/psk_file.txt:/mosquitto/psk_file.txt:ro
+      - ./etc/mosquitto.conf:/etc/mosquitto/mosquitto.conf:ro
+      - ./etc/psk_file.txt:/etc/mosquitto/psk_file.txt:ro
     ports:
-      - "1883:1883"
+      - "8883:8883"
   telegraf:
+    container_name: iotserver_telegraf
     image: telegraf:alpine
     depends_on:
       - influxdb
@@ -23,16 +25,18 @@ services:
     volumes:
       - ./etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro
   influxdb:
+    container_name: iotserver_influxdb
     image: influxdb:alpine
     restart: unless-stopped
     networks:
       - internal
     volumes:
       - ./etc/influxdb.conf:/etc/influxdb/influxdb.conf:ro
-      - influxdb:/var/lib/influxdb
+      - /volume1/docker/iotserver_influxdb:/var/lib/influxdb
     ports:
       - "8086:8086"
   kapacitor:
+    container_name: iotserver_kapacitor
     image: kapacitor:alpine
     environment:
       KAPACITOR_INFLUXDB_0_URLS_0: http://influxdb:8086
@@ -46,6 +50,7 @@ services:
     ports:
       - "9092:9092"
   chronograf:
+    container_name: iotserver_chronograf
     image: chronograf:alpine
     environment:
       INFLUXDB_URL: http://influxdb:8086
@@ -57,10 +62,11 @@ services:
     networks:
       - internal
     volumes:
-      - chronograf:/var/lib/chronograf
+      - /volume1/docker/iotserver_chronograf:/var/lib/chronograf
     ports:
       - "8888:8888"
   grafana:
+    container_name: iotserver_grafana
     build: grafana
     depends_on:
       - influxdb
@@ -69,14 +75,9 @@ services:
       - internal
     volumes:
       - ./etc/grafana.ini:/etc/grafana/grafana.ini:ro
-      - grafana:/var/lib/grafana
+      - /volume1/docker/iotserver_grafana:/var/lib/grafana
     ports:
       - "3000:3000"
 
 networks:
   internal:
-
-volumes:
-  influxdb:
-  chronograf:
-  grafana:
