@@ -7,6 +7,7 @@ services:
       - internal
     volumes:
       - ./etc/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./etc/psk_file.txt:/mosquitto/psk_file.txt:ro
     ports:
       - "1883:1883"
   telegraf:
