@@ -67,7 +67,10 @@ services:
       - "8888:8888"
   grafana:
     container_name: iotserver_grafana
-    build: grafana
+    build:
+      context: grafana
+      args:
+        GF_INSTALL_PLUGINS: marcuscalidus-svg-panel,natel-plotly-panel
     depends_on:
       - influxdb
     restart: unless-stopped
