@@ -1,27 +1,32 @@
 version: '3'
 services:
-  mosquitto:
-    container_name: piotserver_mosquitto
-    build: mosquitto
+  rabbitmq:
+    container_name: piotserver_rabbitmq
+    image: rabbitmq:alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     restart: unless-stopped
     networks:
       - internal
     volumes:
-      - ./etc/mosquitto.conf:/etc/mosquitto/mosquitto.conf:ro
-      - ./etc/psk_file.txt:/etc/mosquitto/psk_file.txt:ro
+      - ./etc/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
     ports:
-      - "8883:8883"
+      - "5672:5672"
+      - "15672:15672"
   telegraf:
     container_name: piotserver_telegraf
     image: telegraf:alpine
     environment:
       INFLUXDB_USERNAME: ${INFLUXDB_ADMIN_USER}
       INFLUXDB_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
+      RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS}
     depends_on:
       - influxdb
       - kapacitor
       - chronograf
-      - mosquitto
+      - rabbitmq
     restart: unless-stopped
     networks:
       - internal
