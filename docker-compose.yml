@@ -8,13 +8,11 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     restart: unless-stopped
-    networks:
-      - internal
     volumes:
       - ./etc/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - 5672:5672
+      - 15672:15672
   telegraf:
     container_name: piotserver_telegraf
     hostname: telegraf
@@ -30,8 +28,6 @@ services:
       - chronograf
       - rabbitmq
     restart: unless-stopped
-    networks:
-      - internal
     volumes:
       - ./etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro
   influxdb:
@@ -46,14 +42,12 @@ services:
       INFLUXDB_WRITE_USER: ${INFLUXDB_WRITE_USER}
       INFLUXDB_WRITE_USER_PASSWORD: ${INFLUXDB_WRITE_USER_PASSWORD}
     restart: unless-stopped
-    networks:
-      - internal
     volumes:
       - ./etc/influxdb.conf:/etc/influxdb/influxdb.conf:ro
       - /volume1/docker/piotserver_influxdb:/var/lib/influxdb
     ports:
-      - "8086:8086"
-      - "8088:8088"
+      - 8086:8086
+      - 8088:8088
   kapacitor:
     container_name: piotserver_kapacitor
     hostname: kapacitor
@@ -65,12 +59,10 @@ services:
     depends_on:
       - influxdb
     restart: unless-stopped
-    networks:
-      - internal
     volumes:
       - ./etc/kapacitor.conf:/etc/kapacitor/kapacitor.conf:ro
     ports:
-      - "9092:9092"
+      - 9092:9092
   chronograf:
     container_name: piotserver_chronograf
     hostname: chronograf
@@ -90,12 +82,10 @@ services:
       - influxdb
       - kapacitor
     restart: unless-stopped
-    networks:
-      - internal
     volumes:
       - /volume1/docker/piotserver_chronograf:/var/lib/chronograf
     ports:
-      - "8888:8888"
+      - 8888:8888
   grafana:
     container_name: piotserver_grafana
     hostname: grafana
@@ -106,13 +96,9 @@ services:
     depends_on:
       - influxdb
     restart: unless-stopped
-    networks:
-      - internal
     volumes:
       - ./etc/grafana.ini:/etc/grafana/grafana.ini:ro
       - /volume1/docker/piotserver_grafana:/var/lib/grafana
     ports:
-      - "3000:3000"
+      - 3000:3000
 
-networks:
-  internal:
