@@ -3,20 +3,18 @@ services:
   rabbitmq:
     container_name: piotserver_rabbitmq
     hostname: rabbitmq
-    image: rabbitmq:alpine
+    image: rabbitmq:3.8-management-alpine
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     restart: unless-stopped
-    volumes:
-      - ./etc/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
     ports:
       - 5672:5672
       - 15672:15672
   telegraf:
     container_name: piotserver_telegraf
     hostname: telegraf
-    image: telegraf:alpine
+    image: telegraf:1.18-alpine
     environment:
       INFLUXDB_USERNAME: ${INFLUXDB_ADMIN_USER}
       INFLUXDB_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
@@ -27,65 +25,32 @@ services:
       - kapacitor
       - chronograf
       - rabbitmq
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro
   influxdb:
     container_name: piotserver_influxdb
     hostname: influxdb
-    image: influxdb:alpine
+    image: influxdb:2.0-alpine
     environment:
-      INFLUXDB_DB: ${INFLUXDB_DB}
-      INFLUXDB_HTTP_AUTH_ENABLED: 1
-      INFLUXDB_ADMIN_USER: ${INFLUXDB_ADMIN_USER}
-      INFLUXDB_ADMIN_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
-      INFLUXDB_WRITE_USER: ${INFLUXDB_WRITE_USER}
-      INFLUXDB_WRITE_USER_PASSWORD: ${INFLUXDB_WRITE_USER_PASSWORD}
-    restart: unless-stopped
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_ADMIN_USER}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ADMIN_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: my-bucket
+
+      # INFLUXDB_DB: ${INFLUXDB_DB}
+      # INFLUXDB_HTTP_AUTH_ENABLED: 1
+      # INFLUXDB_ADMIN_USER: ${INFLUXDB_ADMIN_USER}
+      # INFLUXDB_ADMIN_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
+      # INFLUXDB_WRITE_USER: ${INFLUXDB_WRITE_USER}
+      # INFLUXDB_WRITE_USER_PASSWORD: ${INFLUXDB_WRITE_USER_PASSWORD}
+    restart: always
     volumes:
       - ./etc/influxdb.conf:/etc/influxdb/influxdb.conf:ro
       - /volume1/docker/piotserver_influxdb:/var/lib/influxdb
     ports:
       - 8086:8086
-      - 8088:8088
-  kapacitor:
-    container_name: piotserver_kapacitor
-    hostname: kapacitor
-    image: kapacitor:alpine
-    environment:
-      KAPACITOR_INFLUXDB_0_URLS_0: http://influxdb:8086
-      KAPACITOR_INFLUXDB_0_USERNAME: ${INFLUXDB_ADMIN_USER}
-      KAPACITOR_INFLUXDB_0_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
-    depends_on:
-      - influxdb
-    restart: unless-stopped
-    volumes:
-      - ./etc/kapacitor.conf:/etc/kapacitor/kapacitor.conf:ro
-    ports:
-      - 9092:9092
-  chronograf:
-    container_name: piotserver_chronograf
-    hostname: chronograf
-    image: chronograf:alpine
-    environment:
-      INFLUXDB_URL: http://influxdb:8086
-      KAPACITOR_URL: http://kapacitor:9092
-      INFLUXDB_USERNAME: ${INFLUXDB_ADMIN_USER}
-      INFLUXDB_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
-      TOKEN_SECRET: ${TOKEN_SECRET}
-      GH_CLIENT_ID: ${GH_CLIENT_ID}
-      GH_CLIENT_SECRET: ${GH_CLIENT_SECRET}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      PUBLIC_URL: ${PUBLIC_URL}
-    depends_on:
-      - influxdb
-      - kapacitor
-    restart: unless-stopped
-    volumes:
-      - /volume1/docker/piotserver_chronograf:/var/lib/chronograf
-    ports:
-      - 8888:8888
   grafana:
     container_name: piotserver_grafana
     hostname: grafana
@@ -95,10 +60,9 @@ services:
         GF_INSTALL_PLUGINS: marcuscalidus-svg-panel,natel-plotly-panel
     depends_on:
       - influxdb
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./etc/grafana.ini:/etc/grafana/grafana.ini:ro
       - /volume1/docker/piotserver_grafana:/var/lib/grafana
     ports:
       - 3000:3000
-
